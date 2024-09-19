@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35303.130
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicazioneWebBlazorLogin", "ApplicazioneWebBlazorLogin\ApplicazioneWebBlazorLogin.csproj", "{CCDB2665-6DB7-474B-8EAD-3028AFD01DC1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorAuthApp.API", "BlazorAuthApp.API\BlazorAuthApp.API.csproj", "{BB6094D9-F601-4923-B22F-D0CC36E27E57}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CCDB2665-6DB7-474B-8EAD-3028AFD01DC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCDB2665-6DB7-474B-8EAD-3028AFD01DC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCDB2665-6DB7-474B-8EAD-3028AFD01DC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCDB2665-6DB7-474B-8EAD-3028AFD01DC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB6094D9-F601-4923-B22F-D0CC36E27E57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB6094D9-F601-4923-B22F-D0CC36E27E57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB6094D9-F601-4923-B22F-D0CC36E27E57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB6094D9-F601-4923-B22F-D0CC36E27E57}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CAEFCD23-D88A-433C-B413-8A15C3C0A8CE}
+	EndGlobalSection
+EndGlobal

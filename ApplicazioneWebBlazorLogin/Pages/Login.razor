@@ -1,0 +1,86 @@
+﻿@page "/login"
+@using ApplicazioneWebBlazorLogin.Services
+@inject IAuthenticationService AuthenticationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Login</h3>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success">@successMessage</div>
+                    }
+
+                    <EditForm Model="@model" OnValidSubmit="HandleSubmit">
+                        <div class="form-group">
+                            <label for="username">Username:</label>
+                            <InputText id="username" class="form-control" @bind-Value="model.Username" />
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <InputText id="password" type="password" class="form-control" @bind-Value="model.Password" />
+                        </div>
+                        <br />
+                        <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span class="sr-only">Loading...</span>
+                            }
+                            else
+                            {
+                                <span>Login</span>
+                            }
+                        </button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel model = new LoginModel();
+    private string errorMessage = "";
+    private string successMessage = "";
+    private bool isLoading = false;
+
+    private async Task HandleSubmit()
+    {
+        isLoading = true;
+        errorMessage = "";
+        successMessage = "";
+
+        string token = await AuthenticationService.Login(model.Username, model.Password);
+
+        if (token != null)
+        {
+            await (AuthenticationStateProvider as CustomAuthenticationStateProvider)?.Login(token);
+            NavigationManager.NavigateTo("/loginriuscito");
+            successMessage = "Login riuscito!";
+        }
+        else
+        {
+            errorMessage = "Invalid username or password.";
+        }
+
+        isLoading = false;
+    }
+
+    private class LoginModel
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}
