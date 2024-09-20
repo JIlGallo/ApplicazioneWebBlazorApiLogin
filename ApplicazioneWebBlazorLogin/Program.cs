@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -23,12 +24,20 @@ builder.Services.AddScoped(sp =>
 
     return new HttpClient { BaseAddress = new Uri(apiBaseUrl) };
 });
+builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+    new CustomAuthenticationStateProvider(
+        sp.GetRequiredService<ILocalStorageService>(),
+        sp.GetRequiredService<HttpClient>(),
+        sp.GetRequiredService<NavigationManager>() // Passa NavigationManager al costruttore
+    )
+);
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddBlazoredLocalStorage();
 
 // Registrazione del Custom AuthenticationStateProvider
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddAuthorizationCore();
 

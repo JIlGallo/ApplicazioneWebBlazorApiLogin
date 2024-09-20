@@ -8,6 +8,7 @@ using BlazorAuthApp.API.Models;
 using Microsoft.EntityFrameworkCore;
 using BlazorAuthApp.API.Data;
 using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BlazorAuthApp.API.Controllers
 {
@@ -50,6 +51,20 @@ namespace BlazorAuthApp.API.Controllers
             // Restituisci una risposta di successo
             return Ok();
         }
+        [HttpGet("{userId}/username")]
+        public async Task<IActionResult> GetUsername(int userId)
+        {
+            // Cerca l'utente nel database per ID
+            var user = await _context.Users.FindAsync(userId); // Assumiamo che il tuo modello utente si chiami "Users"
+
+            if (user == null)
+            {
+                return NotFound(); // Restituisci 404 Not Found se l'utente non viene trovato
+            }
+
+            // Restituisci il nome utente
+            return Ok(user.Username);
+        }
 
 
         [HttpPost("authenticate")]
@@ -70,13 +85,19 @@ namespace BlazorAuthApp.API.Controllers
             {
                 Subject = new ClaimsIdentity(new Claim[]
         {
-            new Claim(ClaimTypes.Name, dbUser.Username)
+            new Claim(ClaimTypes.Name, dbUser.Username),
+            new Claim(ClaimTypes.NameIdentifier, dbUser.Id.ToString())
         }),
                 Expires = DateTime.UtcNow.AddMinutes(60), // Imposta la scadenza del token
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return Ok(new { Token = tokenHandler.WriteToken(token) });
+        }
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            return Ok();
         }
     }
     public class UserLoginDto

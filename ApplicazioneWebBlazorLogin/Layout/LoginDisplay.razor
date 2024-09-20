@@ -1,20 +1,64 @@
-﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+﻿@using ApplicazioneWebBlazorLogin.Services
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Security.Claims
 @inject NavigationManager Navigation
+@inject IAuthenticationService AuthenticationService
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <AuthorizeView>
-    <Authorized>
-        Hello, @context.User.Identity?.Name!
+    <Authorized Context="authContext">
+        <span>Benvenuto, <b>@username </b>!</span>
         <button class="nav-link btn btn-link" @onclick="BeginLogOut">Log out</button>
     </Authorized>
     <NotAuthorized>
-        <a href="authentication/login">Log in</a>
+        <a href="/login">Log in</a>
     </NotAuthorized>
 </AuthorizeView>
 
-@code{
-    public void BeginLogOut()
+@code {
+    private string username = "";
+
+
+    protected override async Task OnInitializedAsync()
     {
-        Navigation.NavigateToLogout("authentication/logout");
+        if (await IsUserAuthenticatedAsync())
+        {
+            int? userId = await GetUserIdFromClaimsAsync(); // Attendi il risultato
+
+
+            if (userId.HasValue)
+            {
+                username = await UserService.GetUsernameByIdAsync(userId.Value);
+            }
+            else
+            {
+                Console.WriteLine("Errore: Impossibile ottenere l'ID utente dai claim.");
+            }
+        }
+    }
+    private async Task<bool> IsUserAuthenticatedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        return authState.User.Identity.IsAuthenticated;
     }
 
+    private async Task<int?> GetUserIdFromClaimsAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return userId;
+        }
+
+        return null;
+    }
+
+    private async Task BeginLogOut()
+    {
+        await AuthenticationService.Logout();
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
 }

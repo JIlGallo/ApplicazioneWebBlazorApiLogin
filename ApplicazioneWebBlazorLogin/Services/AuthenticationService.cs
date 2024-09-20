@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using BCrypt.Net;
 using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace ApplicazioneWebBlazorLogin.Services
 {
@@ -11,11 +12,13 @@ namespace ApplicazioneWebBlazorLogin.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage; // Inietta ILocalStorageService
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-        public AuthenticationService(HttpClient httpClient, ILocalStorageService localStorage)
+        public AuthenticationService(HttpClient httpClient, ILocalStorageService localStorage, AuthenticationStateProvider authenticationStateProvider)
         {
             _httpClient = httpClient;
             _localStorage = localStorage;
+            _authenticationStateProvider = authenticationStateProvider;
         }
 
         public async Task<string?> Login(string username, string password)
@@ -35,7 +38,10 @@ namespace ApplicazioneWebBlazorLogin.Services
 
         public async Task Logout()
         {
-            await _httpClient.PostAsync("/api/auth/logout", null);
+            await _localStorage.RemoveItemAsync("authToken");
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            // Chiama il metodo pubblico RefreshAuthenticationState
+            ((CustomAuthenticationStateProvider)_authenticationStateProvider).RefreshAuthenticationState();
         }
     }
 
