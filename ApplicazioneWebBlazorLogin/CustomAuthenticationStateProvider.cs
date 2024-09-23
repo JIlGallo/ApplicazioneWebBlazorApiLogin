@@ -5,6 +5,7 @@ using Blazored.LocalStorage;
 using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Components;
+using System.Net.Http.Json;
 
 namespace ApplicazioneWebBlazorLogin 
 {
@@ -14,11 +15,21 @@ namespace ApplicazioneWebBlazorLogin
         private readonly HttpClient _httpClient;
         private readonly NavigationManager _navigationManager;
 
+        public event Action AuthenticationStateChanged;
+
         public CustomAuthenticationStateProvider(ILocalStorageService localStorage, HttpClient httpClient, NavigationManager navigationManager)
         {
             _localStorage = localStorage;
             _httpClient = httpClient;
             _navigationManager = navigationManager;
+        }
+        private async Task SetAuthorizationHeader(string token)
+        {
+            await _localStorage.SetItemAsync("authToken", token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Notifica il cambio di stato di autenticazione
+            AuthenticationStateChanged?.Invoke();
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()

@@ -30,6 +30,7 @@
             if (userId.HasValue)
             {
                 username = await UserService.GetUsernameByIdAsync(userId.Value);
+                ((CustomAuthenticationStateProvider)AuthenticationStateProvider).AuthenticationStateChanged += UpdateUsername;
             }
             else
             {
@@ -54,6 +55,24 @@
         }
 
         return null;
+    }
+    private async void UpdateUsername()
+    {
+        if (await IsUserAuthenticatedAsync())
+        {
+            int? userId = await GetUserIdFromClaimsAsync();
+            if (userId.HasValue)
+            {
+                username = await UserService.GetUsernameByIdAsync(userId.Value);
+                StateHasChanged(); // Forza l'aggiornamento dell'UI
+            }
+        }
+        ((CustomAuthenticationStateProvider)AuthenticationStateProvider).AuthenticationStateChanged -= UpdateUsername;
+
+    }
+    public void Dispose()
+    {
+        // Disiscriviti dall'evento quando il componente viene distrutto
     }
 
     private async Task BeginLogOut()

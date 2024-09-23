@@ -94,6 +94,93 @@ namespace BlazorAuthApp.API.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return Ok(new { Token = tokenHandler.WriteToken(token) });
         }
+        [HttpPut("{userId}/username")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUsername(int userId, [FromBody] UpdateUsernameDto request)
+        {
+            // Verifica se l'ID utente nella richiesta corrisponde a quello autenticato
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            if (userId != currentUserId)
+            {
+                return Unauthorized("Non autorizzato a modificare questo utente.");
+            }
+
+            // Cerca l'utente nel database
+            var dbUser = await _context.Users.FindAsync(userId);
+            if (dbUser == null)
+            {
+                return NotFound("Utente non trovato.");
+            }
+
+            // Verifica se il nuovo nome utente è già in uso
+            if (await _context.Users.AnyAsync(u => u.Username == request.NewUsername))
+            {
+                return BadRequest("Nome utente già esistente.");
+            }
+
+            // Aggiorna il nome utente
+            dbUser.Username = request.NewUsername;
+            await _context.SaveChangesAsync(); // Salva le modifiche nel database
+
+            // Genera un nuovo token JWT con il nome utente aggiornato
+            var newToken = GenerateJwtToken(dbUser);
+
+            return Ok(new { Token = newToken }); // Restituisci il nuovo token al client
+        }
+        // In AuthController.cs
+
+
+        [HttpPut("{userId}/password")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePassword(int userId, [FromBody] UpdatePasswordDto request)
+        {
+            // Verifica se l'ID utente nella richiesta corrisponde a quello autenticato
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            if (userId != currentUserId)
+            {
+                return Unauthorized("Non autorizzato a modificare questo utente.");
+            }
+
+            // Cerca l'utente nel database
+            var dbUser = await _context.Users.FindAsync(userId);
+            if (dbUser == null)
+            {
+                return NotFound("Utente non trovato.");
+            }
+
+            // Verifica la vecchia password
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, dbUser.PasswordHash))
+            {
+                return BadRequest("Vecchia password errata.");
+            }
+
+            // Aggiorna la password
+            dbUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+            await _context.SaveChangesAsync(); // Salva le modifiche nel database
+
+            // Genera un nuovo token JWT
+            var newToken = GenerateJwtToken(dbUser);
+
+            return Ok(new { Token = newToken }); // Restituisci il nuovo token al client
+        }
+        private string GenerateJwtToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(60), // Imposta la scadenza del token
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
         [HttpPost("logout")]
         public IActionResult Logout()
         {
@@ -109,6 +196,16 @@ namespace BlazorAuthApp.API.Controllers
     {
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+    public class UpdateUsernameDto
+    {
+        public string NewUsername { get; set; }
+    }
+
+    public class UpdatePasswordDto
+    {
+        public string OldPassword { get; set; }
+        public string NewPassword { get; set; }
     }
 }
 

@@ -1,7 +1,8 @@
 ﻿@page "/modificapersona"
 @using System.ComponentModel.DataAnnotations
+@using ApplicazioneWebBlazorLogin.Services
 @inject HttpClient Http
-@inject NavigationManager NavigationManager
+@inject IAuthenticationService AuthenticationService
 
 <div class="container">
     <div class="row justify-content-center">
@@ -21,7 +22,7 @@
                         <div class="alert alert-success">@successMessage</div>
                     }
 
-                    <EditForm Model="@userModel" OnValidSubmit="HandleSubmit">
+                    <EditForm Model="@userModel" OnSubmit="HandleUsernameSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
@@ -29,21 +30,43 @@
                             <label for="username">Nuovo Username:</label>
                             <InputText id="username" class="form-control" @bind-Value="userModel.Username" />
                         </div>
-
-                        <div class="form-group">
-                            <label for="password">Nuova Password:</label>
-                            <InputText id="password" type="password" class="form-control" @bind-Value="userModel.Password" />
-                        </div>
                         <br />
-                        <button type="submit" class="btn btn-primary btn-block" disabled="@isLoading">
-                            @if (isLoading)
+                        <button type="submit" class="btn btn-primary btn-block" disabled="@isLoadingUsername">
+                            @if (isLoadingUsername)
                             {
                                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                                 <span class="sr-only">Caricamento...</span>
                             }
                             else
                             {
-                                <span>Modifica Utente</span>
+                                <span>Modifica Username</span>
+                            }
+                        </button>
+                    </EditForm>
+                    <br />
+                    <EditForm Model="@userModel" OnSubmit="HandlePasswordSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="form-group">
+                            <label for="oldPassword">Vecchia Password:</label>
+                            <InputText id="oldPassword" type="password" class="form-control" @bind-Value="userModel.OldPassword" />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newPassword">Nuova Password:</label>
+                            <InputText id="newPassword" type="password" class="form-control" @bind-Value="userModel.NewPassword" />
+                        </div>
+                        <br />
+                        <button type="submit" class="btn btn-primary btn-block" disabled="@isLoadingPassword">
+                            @if (isLoadingPassword)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <span class="sr-only">Caricamento...</span>
+                            }
+                            else
+                            {
+                                <span>Modifica Password</span>
                             }
                         </button>
                     </EditForm>
@@ -57,21 +80,64 @@
     private UserModel userModel = new UserModel();
     private string errorMessage = "";
     private string successMessage = "";
-    private bool isLoading = false;
+    private bool isLoadingUsername = false;
+    private bool isLoadingPassword = false;
 
-    private async Task HandleSubmit()
+    private async Task HandleUsernameSubmit()
     {
-        isLoading = true;
+        isLoadingUsername = true;
         errorMessage = "";
         successMessage = "";
 
-        // Logica per inviare la richiesta di modifica al backend
-        // ... (implementa la logica per aggiornare l'utente) ...
+        try
+        {
+            if (await AuthenticationService.UpdateUsername(userModel.Username))
+            {
+                successMessage = "Username modificato con successo!";
+                userModel.Username = ""; // Reimposta il campo username
+            }
+            else
+            {
+                errorMessage = "Errore durante la modifica dell'username.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Errore imprevisto: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingUsername = false;
+        }
+    }
 
-        isLoading = false;
+    private async Task HandlePasswordSubmit()
+    {
+        isLoadingPassword = true;
+        errorMessage = "";
+        successMessage = "";
 
-        // Gestisci il risultato (successo o errore)
-        // ...
+        try
+        {
+            if (await AuthenticationService.UpdatePassword(userModel.OldPassword, userModel.NewPassword))
+            {
+                successMessage = "Password modificata con successo!";
+                userModel.OldPassword = ""; // Reimposta i campi password
+                userModel.NewPassword = "";
+            }
+            else
+            {
+                errorMessage = "Errore durante la modifica della password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Errore imprevisto: {ex.Message}";
+        }
+        finally
+        {
+            isLoadingPassword = false;
+        }
     }
 
     public class UserModel
@@ -79,7 +145,10 @@
         [Required(ErrorMessage = "Il campo Username è obbligatorio.")]
         public string Username { get; set; } = "";
 
-        [MinLength(6,ErrorMessage = "Il campo Password deve avere almeno 6 lettere o cifre.")]
-        public string Password { get; set; } = "";
+        [Required(ErrorMessage = "Il campo Old Password è obbligatorio.")]
+        public string OldPassword { get; set; } = "";
+
+        [MinLength(6, ErrorMessage = "Il campo Password deve avere almeno 6 lettere o cifre.")]
+        public string NewPassword { get; set; } = "";
     }
 }
