@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -31,6 +32,11 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
         sp.GetRequiredService<NavigationManager>() // Passa NavigationManager al costruttore
     )
 );
+builder.Services.AddScoped<GeolocationService>();
+
+
+// Blazor WebAssembly in Program.cs
+
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 builder.Services.AddBlazoredLocalStorage();
