@@ -1,21 +1,44 @@
 ﻿@page "/gps"
 @inject GeolocationService GeolocationService
+@inject IJSRuntime JSRuntime
 
-<h1>Geolocation</h1>
-
-@if (_coordinates != null)
-{
-    <p>Latitude: @_coordinates.Latitude</p>
-    <p>Longitude: @_coordinates.Longitude</p>
-}
-else if (_error != null)
-{
-    <p>Error: @_error</p>
-}
-else
-{
-    <p>Loading...</p>
-}
+<div class="container my-5">
+    <h1 class="display-4 text-center mb-4">Geolocation</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg rounded-3">
+                <div class="card-body p-4">
+                    @if (_coordinates != null)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-6 fw-bold text-primary">Latitude:</div>
+                            <div class="col-6 text-end text-secondary">@_coordinates.Latitude</div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="row mb-3">
+                            <div class="col-6 fw-bold text-primary">Longitude:</div>
+                            <div class="col-6 text-end text-secondary">@_coordinates.Longitude</div>
+                        </div>
+                    }
+                    else if (_error != null)
+                    {
+                        <div class="alert alert-danger text-center" role="alert">
+                            Error: @_error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     private GeolocationCoordinates? _coordinates;
@@ -25,7 +48,29 @@ else
     {
         try
         {
-            _coordinates = await GeolocationService.GetCurrentPosition();
+            // Invoca la función JavaScript getCurrentPosition()
+            _coordinates = await JSRuntime.InvokeAsync<GeolocationCoordinates>(
+                "eval", // Usa 'eval' para ejecutar el código JavaScript directamente
+                    @"(function() {
+                    return new Promise((resolve, reject) => {
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                    resolve({
+                                        latitude: position.coords.latitude,
+                                        longitude: position.coords.longitude,
+                                    });
+                                },
+                                (error) => {
+                                    reject(error.message);
+                                }
+                            );
+                        } else {
+                            reject('Geolocation is not supported by this browser.');
+                        }
+                    });
+                })()"
+            );
         }
         catch (Exception ex)
         {

@@ -101,3 +101,32 @@ a, .btn-link {
 code {
     color: #c02d76;
 }
+h1 {
+    font-family: 'Roboto', sans-serif;
+    color: #007bff;
+}
+
+.card {
+    border: 1px solid #e0e0e0;
+}
+
+.fw-bold {
+    font-weight: bold;
+}
+
+.shadow-lg {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.text-primary {
+    color: #007bff;
+}
+
+.text-secondary {
+    color: #6c757d;
+}
+
+hr {
+    border-color: #007bff;
+}
+

@@ -1,10 +1,12 @@
 ﻿@page "/foto"
 @inject IJSRuntime JSRuntime
 
-<h1>Cattura Foto</h1>
-
+<h1 class="display-4 " style="font-family: 'Roboto', sans-serif; font-size: 3rem; color: #333;">Cattura Foto</h1>
 <video id="video" width="640" height="480" autoplay></video>
-<button id="snap" @onclick="TakePhoto">Scatta Foto</button>
+<div>
+    <button id="snap" @onclick="TakePhoto" class="btn btn-primary btn-lg">Scatta Foto</button>
+</div>
+<br />
 <canvas id="canvas" width="640" height="480"></canvas>
 
 @code {
