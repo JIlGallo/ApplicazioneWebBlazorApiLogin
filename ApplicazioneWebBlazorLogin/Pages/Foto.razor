@@ -1,0 +1,30 @@
+﻿@page "/foto"
+@inject IJSRuntime JSRuntime
+
+<h1>Cattura Foto</h1>
+
+<video id="video" width="640" height="480" autoplay></video>
+<button id="snap" @onclick="TakePhoto">Scatta Foto</button>
+<canvas id="canvas" width="640" height="480"></canvas>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeCamera");
+        }
+    }
+
+    private async Task TakePhoto()
+    {
+        // Chiama la funzione JavaScript per catturare la foto
+        await JSRuntime.InvokeVoidAsync("takePhoto");
+
+        // Recupera i dati dell'immagine dal canvas
+        string imageData = await JSRuntime.InvokeAsync<string>("getCanvasData");
+
+        // Fai qualcosa con i dati dell'immagine (es: invia al server)
+        Console.WriteLine("Dati immagine: " + imageData);
+    }
+}
