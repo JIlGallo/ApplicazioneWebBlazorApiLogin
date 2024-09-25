@@ -11,6 +11,7 @@ namespace BlazorAuthApp.API.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<ImageEntity> ImageEntities { get; set; }
     }
 }
 

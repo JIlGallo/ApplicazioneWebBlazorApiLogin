@@ -1,10 +1,11 @@
 ﻿@page "/foto"
 @inject IJSRuntime JSRuntime
+@inject HttpClient HttpClient
 
 <h1 class="display-4 " style="font-family: 'Roboto', sans-serif; font-size: 3rem; color: #333;">Cattura Foto</h1>
 <video id="video" width="640" height="480" autoplay></video>
 <div>
-    <button id="snap" @onclick="TakePhoto" class="btn btn-primary btn-lg">Scatta Foto</button>
+    <button id="snap" @onclick="CaptureAndSendPhoto" class="btn btn-primary btn-lg">Scatta Foto</button>
 </div>
 <br />
 <canvas id="canvas" width="640" height="480"></canvas>
@@ -18,15 +19,26 @@
         }
     }
 
-    private async Task TakePhoto()
+    private async Task CaptureAndSendPhoto()
     {
         // Chiama la funzione JavaScript per catturare la foto
         await JSRuntime.InvokeVoidAsync("takePhoto");
+        var formData = new MultipartFormDataContent();
 
         // Recupera i dati dell'immagine dal canvas
         string imageData = await JSRuntime.InvokeAsync<string>("getCanvasData");
 
+        formData.Add(new StringContent(imageData), "Base64Image");
+        var response = await HttpClient.PostAsync("api/Image/upload-image", formData);
+
+
         // Fai qualcosa con i dati dell'immagine (es: invia al server)
-        Console.WriteLine("Dati immagine: " + imageData);
+        Console.WriteLine(imageData);
     }
+    public class ImageData
+    {
+        public string Base64Image { get; set; }
+        public string? FileName { get; set; }
+    }
+}
 }
